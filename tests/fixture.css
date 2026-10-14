@@ -17,4 +17,11 @@ html, body { margin: 0; background: #f7f8f9; }
 .post__content, .image-text__content { font-size: 16px; line-height: 25px; }
 .link-section-title { font-size: 20px; line-height: 30px; }
 .comment-item__content, .children-item__comment-content { font-size: 15px; }
+.bbs-content__imgs-wrapper { position:relative; }
+.bbs-content__imgs-wrapper .bbs-content__image { position:absolute; }
+.hb-cpt__image { position:relative; overflow:hidden; }
+.hb-cpt__image-elem { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; }
+.post__header-image { position:relative; width:100%; padding-bottom:53.18%; }
+.post_header-image-item { position:absolute; inset:0; width:100%; height:100%; }
+.header-image__container .swiper-slide, .header-image__item-image, .header-image__item-image img { width:100%; height:100%; }
 @media(max-width: 1080px) { .content > .right { display: none; } }

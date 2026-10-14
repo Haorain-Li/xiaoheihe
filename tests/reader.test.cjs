@@ -7,14 +7,20 @@ const base = path.resolve(__dirname, '..');
 const output = path.join(base, 'test-results');
 fs.mkdirSync(output, { recursive: true });
 const userscript = fs.readFileSync(path.join(base, 'xiaoheihe-reader.user.js'), 'utf8');
-const css = fs.readFileSync(path.join(__dirname, 'fixture.css'), 'utf8');
+const fixtureCSS = fs.readFileSync(path.join(__dirname, 'fixture.css'), 'utf8');
+const css = process.env.XHH_REFERENCE_CSS_DIR ? fixtureCSS + '\n' +
+  ['index.css', 'index-Bihp8hbO.css', 'index-BQE5Tmp4.css', 'index-DBcvV3KQ.css', 'index-ChemEL1Y.css', 'index-CEV-W59j.css']
+    .map(name => fs.readFileSync(path.join(process.env.XHH_REFERENCE_CSS_DIR, name), 'utf8')).join('\n') : fixtureCSS;
 const text = '这是一段用于验证阅读排版的社区内容。长时间阅读时，合适的字号与行距可以让段落更清晰。English words should wrap normally and URLs can break safely. '.repeat(3);
+const svgImage = (width, height) => 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="' + width + '" height="' + height + '"><rect width="100%" height="100%" fill="#87a9b8"/><circle cx="50%" cy="50%" r="25%" fill="#f2dba8"/></svg>');
+const feedMedia = () => '<div class="bbs-content__imgs-wrapper" style="height:420px">' + Array.from({length:6},(_,i)=>'<div class="bbs-content__image hb-cpt__image" style="left:'+(i*205)+'px;top:0;width:200px;height:200px"><img class="hb-cpt__image-elem" src="'+svgImage(640,480)+'"></div>').join('') + '<span class="bbs-content__image-cnt">6张</span></div><div class="bbs-content__video_wrapper" style="width:700px;height:400px"><img class="bbs-content__video-cover" src="'+svgImage(1600,900)+'"></div>';
+const postMedia = () => '<div class="com-img"><div class="hb-cpt__image" style="width:760px;height:1520px"><img id="portrait" class="hb-cpt__image-elem" src="'+svgImage(1000,2000)+'"></div></div><div class="img"><img id="landscape" src="'+svgImage(1600,900)+'"></div><img id="emoji" class="hb-emoji" width="18" height="18" src="'+svgImage(18,18)+'"><video id="post-video" width="800" height="450"></video>';
 const fixture = (detail) => `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style></head><body><div id="app"><header style="height:64px">小黑盒 · 本地布局验证</header><main>
   <section id="${detail ? 'page-bbs-link' : 'page-bbs-community'}" class="${detail ? 'layout-normal' : ''}" data-v-38787230 data-v-a4016135>
   ${detail ? '' : '<div class="bbs-community__search-module" data-v-a4016135><div class="search-input"><div class="el-input__wrapper"><input placeholder="搜索小黑盒"></div></div></div>'}
   <div class="content" data-v-38787230 data-v-a4016135><main class="list" data-v-38787230 data-v-a4016135>
-  ${detail ? `<div class="hb-bbs-link"><div class="hb-cpt-page-header hb-bbs-link__header"><div class="page-header__container"><button class="page-header__back-btn">返回</button></div></div><div class="hb-bbs-link__container"><article class="hb-bbs-post"><div class="post__container"><h1 class="link-section-title">用更舒服的排版阅读游戏社区</h1><div class="link-section-user"><span class="link-user__username">示例作者</span></div><div class="post__content"><p class="com-text">${text}</p><p class="com-text">${text}</p><a href="#">正文链接</a><pre>${'code '.repeat(150)}</pre></div></div></article><div class="link-comment"><div class="link-comment__comment-item"><div class="comment-item__content-container"><div class="comment-item__content">评论文字示例</div></div><div class="link-comment__comment-children"><div class="comment-children-item"><span class="children-item__comment-content">回复文字</span></div></div></div><textarea aria-label="写评论"></textarea></div></div></div>` : `<div class="hb-bbs-home" data-v-a4016135><div class="bbs-home__topic-list-wrapper" data-v-a4016135>游戏社区快捷入口</div><div class="bbs-home__content-list" data-v-a4016135>${Array.from({ length: 12 }, (_, i) => `<div class="bbs-home__content-item hb-bbs-home__feed-splitline" data-v-a4016135><article class="hb-cpt__bbs-content"><h2 class="bbs-content__title">第 ${i + 1} 条帖子 · 阅读优化示例</h2><div class="bbs-content__content">${text}</div></article></div>`).join('')}</div></div>`}
-  </main><aside class="right" data-v-38787230 data-v-a4016135><div class="bbs-community-hot-topic" data-v-f1e287e0><p class="hot-topic__name">${detail ? '相关推荐' : '热门社区'}</p></div><div class="right-side-default"><p class="title">下载小黑盒 APP</p></div></aside></div></section></main></div></body></html>`;
+  ${detail ? `<div class="hb-bbs-link"><div class="image-text__header-image"><div class="header-image__container" style="height:600px"><div class="swiper-slide"><div class="header-image__item-image"><img src="${svgImage(1600,900)}"></div></div></div></div><div class="post__header-image"><img class="post_header-image-item" src="${svgImage(1600,900)}"></div><div class="hb-cpt-page-header hb-bbs-link__header"><div class="page-header__container"><button class="page-header__back-btn">返回</button></div></div><div class="hb-bbs-link__container"><article class="hb-bbs-post"><div class="post__container"><h1 class="link-section-title">用更舒服的排版阅读游戏社区</h1><div class="link-section-user"><span class="link-user__username">示例作者</span></div><div class="post__content">${postMedia()}<p class="com-text">${text}</p><p class="com-text">${text}</p><a href="#">正文链接</a><pre>${'code '.repeat(150)}</pre></div></div></article><div class="link-comment"><div class="link-comment__comment-item"><div class="comment-item__content-container"><div class="comment-item__content">评论文字示例</div></div><div class="link-comment__comment-children"><div class="comment-children-item"><span class="children-item__comment-content">回复文字</span></div></div></div><textarea aria-label="写评论"></textarea></div></div></div>` : `<div class="hb-bbs-home" data-v-a4016135><div class="bbs-home__topic-list-wrapper" data-v-a4016135>游戏社区快捷入口</div><div class="bbs-home__content-list" data-v-a4016135>${Array.from({ length: 12 }, (_, i) => `<div class="bbs-home__content-item hb-bbs-home__feed-splitline" data-v-a4016135><article class="hb-cpt__bbs-content"><h2 class="bbs-content__title">第 ${i + 1} 条帖子 · 阅读优化示例</h2><div class="bbs-content__content">${text}</div>${feedMedia()}</article></div>`).join('')}</div></div>`}
+  </main><aside class="right" data-v-38787230 data-v-a4016135><div class="bbs-community-hot-topic" data-v-f1e287e0><p class="hot-topic__name">${detail ? '相关推荐' : '热门社区'}</p></div><div class="right-side-default"><p class="title">下载小黑盒 APP</p></div></aside></div></section></main></div><div class="hb-cpt__image-viewer" style="position:fixed;inset:0;display:none"><img id="viewer-image" style="width:900px;height:600px" src="${svgImage(900,600)}"></div></body></html>`;
 
 (async () => {
   const browser = await chromium.launch({ ...(process.env.BROWSER_EXECUTABLE_PATH ? { executablePath: process.env.BROWSER_EXECUTABLE_PATH } : {}), headless: true });
@@ -62,6 +68,12 @@ const fixture = (detail) => `<!doctype html><html><head><meta charset="utf-8"><m
       const s = getComputedStyle(el); return { font: s.fontSize, line: s.lineHeight, color: s.color, width: el.getBoundingClientRect().width, display: s.display };
     });
     const control = key => page.locator(`#xhh-reader-tools [data-key="${key}"]`);
+    const changeRange = (key, value) => control(key).evaluate((el, next) => { el.value = String(next); el.dispatchEvent(new Event('input', { bubbles: true })); }, value);
+    const bounds = selector => page.locator(selector).first().evaluate(el => {
+      const rect = el.getBoundingClientRect(); const s = getComputedStyle(el);
+      return { width:rect.width, height:rect.height, display:s.display, fit:s.objectFit, position:s.position };
+    });
+    const near = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1, `${actual} should be near ${expected}`);
     await page.goto('https://www.xiaoheihe.cn/app/bbs/home');
     await install();
     assert.equal((await computed('.bbs-content__content')).font, '18px');
@@ -69,6 +81,44 @@ const fixture = (detail) => `<!doctype html><html><head><meta charset="utf-8"><m
     assert.equal((await computed('#page-bbs-community > .content > .list')).width, 820);
     assert.equal((await computed('.bbs-content__content')).color, 'rgb(51, 53, 47)');
     await page.locator('#xhh-reader-tools #toggle').click();
+    // 首页缩略图默认缩小并限制为三张；原点击事件及完整图片仍存在于 DOM。
+    near((await bounds('.bbs-content__image')).width, 120);
+    near((await bounds('.bbs-content__image')).height, 120);
+    assert.equal(await page.locator('.bbs-content__imgs-wrapper').first().locator('.bbs-content__image:visible').count(), 3);
+    assert.equal(await page.locator('.bbs-content__imgs-wrapper').first().locator('.bbs-content__image').count(), 6);
+    assert.equal((await bounds('.bbs-content__image img')).fit, 'contain');
+    await changeRange('thumbSize', 64); await changeRange('thumbCount', 5);
+    near((await bounds('.bbs-content__image')).width, 64);
+    assert.equal(await page.locator('.bbs-content__imgs-wrapper').first().locator('.bbs-content__image:visible').count(), 5);
+    await control('imageFit').selectOption('cover');
+    assert.equal((await bounds('.bbs-content__image img')).fit, 'cover');
+    await control('mediaSizing').uncheck();
+    near((await bounds('.bbs-content__image')).width, 200);
+    assert.equal((await bounds('.bbs-content__image')).position, 'absolute');
+    assert.equal(await page.locator('.bbs-content__imgs-wrapper').first().locator('.bbs-content__image:visible').count(), 6);
+    await control('mediaSizing').check();
+    await control('showImages').uncheck();
+    assert.equal((await bounds('.bbs-content__imgs-wrapper')).display, 'none');
+    await control('showImages').check();
+    await control('showVideos').uncheck();
+    assert.equal((await bounds('.bbs-content__video_wrapper')).display, 'none');
+    await control('showVideos').check();
+    assert.ok((await bounds('.bbs-content__video_wrapper')).width <= 420);
+    assert.ok((await bounds('.bbs-content__video_wrapper')).height <= 280);
+    await page.locator('#xhh-reader-tools [data-preset="compact"]').click();
+    near((await bounds('.bbs-content__image')).width, 80);
+    assert.equal((await computed('.bbs-content__content')).font, '16px');
+    assert.equal(await page.locator('.bbs-content__content').first().evaluate(el => getComputedStyle(el).webkitLineClamp), '2');
+    // 支持直接输入，超出范围的数字会限制在支持范围。
+    await page.locator('#xhh-reader-tools details').nth(1).evaluate(el => { el.open = true; });
+    await page.locator('#xhh-reader-tools [data-number-key="width"]').fill('1840');
+    await page.locator('#xhh-reader-tools [data-number-key="width"]').dispatchEvent('change');
+    assert.equal(await page.locator('html').evaluate(el => el.style.getPropertyValue('--xhr-width')), '1840px');
+    await page.locator('#xhh-reader-tools [data-number-key="font"]').fill('99');
+    await page.locator('#xhh-reader-tools [data-number-key="font"]').dispatchEvent('change');
+    assert.equal((await computed('.bbs-content__content')).font, '40px');
+    await page.locator('#xhh-reader-tools [data-preset="comfortable"]').click();
+    // 预设不会重置主题和专注等阅读选项。
     await control('focus').check();
     assert.equal((await computed('.right')).display, 'none');
     await control('fullSummary').check();
@@ -79,6 +129,7 @@ const fixture = (detail) => `<!doctype html><html><head><meta charset="utf-8"><m
     assert.equal((await computed('.bbs-content__content')).color, 'rgb(220, 226, 233)');
     await page.waitForFunction(() => JSON.parse(localStorage.getItem('xhh-reader-options-v1'))?.theme === 'dark');
     await page.evaluate(() => window.scrollTo(0, 0));
+    await page.locator('#xhh-reader-tools #settings').evaluate(el => { el.scrollTop = 0; });
     await page.screenshot({ path: path.join(output, 'preview-home-dark.png') });
     await page.reload(); await install();
     assert.equal(await page.locator('html').getAttribute('data-xhr-theme'), 'dark');
@@ -102,10 +153,31 @@ const fixture = (detail) => `<!doctype html><html><head><meta charset="utf-8"><m
     });
     assert.equal((await computed('#new-card')).font, '18px');
     await page.goto('https://www.xiaoheihe.cn/app/bbs/link/123'); await install();
+    await page.locator('#portrait').evaluate(img => img.decode());
+    near((await bounds('#portrait')).width, 210); near((await bounds('#portrait')).height, 420);
+    assert.ok((await bounds('#portrait')).height / (await bounds('#portrait')).width === 2);
+    assert.ok((await bounds('.com-img .hb-cpt__image')).height <= 420);
+    assert.ok((await bounds('#landscape')).width <= 520);
+    near((await bounds('#emoji')).width, 18); near((await bounds('#emoji')).height, 18);
+    assert.equal(await page.locator('#viewer-image').evaluate(el => getComputedStyle(el).width), '900px');
+    assert.ok((await bounds('#post-video')).width <= 420);
+    assert.ok((await bounds('#post-video')).height <= 280);
+    near((await bounds('.header-image__container')).height, 320);
+    near((await bounds('.post__header-image')).height, 320);
+    await page.locator('#portrait').evaluate(img => { img.onclick = () => { window.__imageClicks = (window.__imageClicks || 0) + 1; }; });
+    await page.locator('#portrait').click();
+    assert.equal(await page.evaluate(() => window.__imageClicks), 1);
     assert.equal((await computed('.post__content')).font, '18px');
     assert.equal((await computed('.comment-item__content')).font, '17px');
     assert.equal((await computed('#page-bbs-link > .content > .list')).width, 820);
     await page.locator('#xhh-reader-tools #toggle').click();
+    await changeRange('imageWidth', 300); await changeRange('imageHeight', 200);
+    near((await bounds('#portrait')).height, 200); near((await bounds('#portrait')).width, 100);
+    assert.ok((await bounds('#landscape')).width <= 300);
+    await page.locator('#xhh-reader-tools [data-preset="wide"]').click();
+    assert.equal(await page.locator('html').getAttribute('data-xhr-theme'), 'paper');
+    assert.equal(await page.locator('html').evaluate(el => el.style.getPropertyValue('--xhr-width')), '1400px');
+    await page.locator('#xhh-reader-tools [data-preset="comfortable"]').click();
     await control('comments').uncheck();
     assert.equal((await computed('.comment-item__content')).font, '15px');
     await control('font').evaluate(el => { el.value = '22'; el.dispatchEvent(new Event('input', { bubbles: true })); });
@@ -127,14 +199,15 @@ const fixture = (detail) => `<!doctype html><html><head><meta charset="utf-8"><m
     await page.reload();
     await page.evaluate(() => localStorage.setItem('xhh-reader-options-v1', JSON.stringify({ font: 999, line: 'bad', width: -1, theme: 'invalid' })));
     await install();
-    assert.equal((await computed('.post__content')).font, '24px');
+    assert.equal((await computed('.post__content')).font, '40px');
     assert.equal(await page.locator('html').getAttribute('data-xhr-theme'), 'paper');
-    assert.equal(await page.locator('html').evaluate(el => el.style.getPropertyValue('--xhr-width')), '600px');
+    assert.equal(await page.locator('html').evaluate(el => el.style.getPropertyValue('--xhr-width')), '360px');
     await page.setViewportSize({ width: 1440, height: 960 });
     // 重复注入不能叠加扩展菜单、存储监听、快捷键或轮询。
     for (let i = 0; i < 4; i++) await install();
     assert.equal(await page.locator('#xhh-reader-tools').count(), 1);
     assert.equal(await page.locator('#xhh-reader-style').count(), 1);
+    assert.equal(await page.locator('#xhh-reader-media-limit').count(), 1);
     assert.deepEqual(await page.evaluate(() => [__readerTest.menus.size, __readerTest.listeners.size, __readerTest.polls.size]), [2, 1, 1]);
     await page.keyboard.press('Alt+r');
     assert.equal(await page.locator('#xhh-reader-tools #settings').isVisible(), true);
@@ -148,6 +221,7 @@ const fixture = (detail) => `<!doctype html><html><head><meta charset="utf-8"><m
     });
     await page.waitForFunction(() => document.getElementById('xhh-reader-style') && document.getElementById('xhh-reader-tools'));
     assert.equal(await page.locator('html').evaluate(el => el.classList.contains('xhr-on')), false);
+    assert.deepEqual(await page.locator('html').evaluate(el => Array.from(el.style).filter(name => name.startsWith('--xhr-'))), []);
     const hint = await page.locator('#xhh-reader-tools #hint').textContent();
     assert.ok(hint.includes('等待页面加载'));
     await page.evaluate(() => {
@@ -224,7 +298,7 @@ const fixture = (detail) => `<!doctype html><html><head><meta charset="utf-8"><m
     await fallback.waitForFunction(() => { try { return JSON.parse(localStorage.getItem('xhh-reader-options-v1')).theme === 'dark'; } catch { return false; } });
     await fallback.close();
     assert.deepEqual(errors, []);
-    console.log('PASS: typography, themes, focus, preferences, SPA, responsive layout, corrupt settings, reinjection cleanup, DOM remount, storage failures, cross-tab sync, dirty-field merge, bfcache, background polling and iframe isolation.');
+    console.log('PASS: media sizing/count/aspect ratio, presets, numeric inputs, typography, themes, focus, preferences, SPA, responsive layout, corrupt settings, reinjection cleanup, DOM remount, storage failures, cross-tab sync, dirty-field merge, bfcache, background polling and iframe isolation.');
     await context.close();
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
