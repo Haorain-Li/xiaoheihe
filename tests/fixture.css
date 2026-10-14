@@ -24,4 +24,16 @@ html, body { margin: 0; background: #f7f8f9; }
 .post__header-image { position:relative; width:100%; padding-bottom:53.18%; }
 .post_header-image-item { position:absolute; inset:0; width:100%; height:100%; }
 .header-image__container .swiper-slide, .header-image__item-image, .header-image__item-image img { width:100%; height:100%; }
+#page-topic-link { max-width:1032px; margin:auto; padding:16px 0; }
+.topic-link__content { display:flex; gap:16px; }
+#page-topic-link .topic-link__main { flex:1; width:0; max-width:660px; }
+.topic-link__right { width:356px; flex-shrink:0; }
+.topic-link__panel, .topic-link__header, .topic-link__filter-row { background:white; }
+.topic-link__filter-row { display:flex; align-items:center; justify-content:space-between; }
+.topic-link__list { padding:0 16px; }
+.hb-cpt__slide-tab { display:flex; background:white; }
+.slide-tab__tab-item { color:#64696e; padding:12px 10px; flex-shrink:0; }
+.slide-tab__tab-item.active { color:#14191e; }
+.hb-cpt__slide-tab.block .slide-tab__tab-item.active { background:#14191e; color:white; }
 @media(max-width: 1080px) { .content > .right { display: none; } }
+@media(max-width: 1080px) { .topic-link__right { display:none; } }

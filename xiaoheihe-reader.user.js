@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         小黑盒 · 阅读优化
 // @namespace    local.xiaoheihe.reader
-// @version      1.2.0
+// @version      1.3.0
 // @description  自定义图片、视频、字号、行距、宽度与信息密度，支持阅读预设、护眼/深色主题，设置自动保存。
 // @match        https://www.xiaoheihe.cn/*
 // @match        https://xiaoheihe.cn/*
@@ -42,6 +42,8 @@
   let valueListener;
   const menuIDs = [];
   const dirty = new Map();
+  const FEED_PAGES = ':is(#page-bbs-community, #page-topic-link)';
+  const PAGE_SELECTOR = '#page-bbs-community, #page-bbs-link, #page-topic-link';
 
   // 选择器取自小黑盒网页 1.2.42（2026-10-14）。不修改站点数据或请求。
   const KEY = 'xhh-reader-options-v1';
@@ -58,8 +60,8 @@
     line: ['正文行距', 1, 3, 0.05, '倍'],
     width: ['阅读栏宽度', 360, 2400, 20, 'px'],
     cardPadding: ['帖子上下留白', 0, 64, 1, 'px'],
-    summaryLines: ['首页摘要行数', 1, 20, 1, '行'],
-    thumbSize: ['首页缩略图尺寸', 48, 320, 4, 'px'],
+    summaryLines: ['列表摘要行数', 1, 20, 1, '行'],
+    thumbSize: ['列表缩略图尺寸', 48, 320, 4, 'px'],
     thumbCount: ['每帖最多预览图片', 1, 12, 1, '张'],
     imageWidth: ['正文图片最大宽度', 120, 2000, 20, 'px'],
     imageHeight: ['正文图片最大高度', 80, 1600, 20, 'px'],
@@ -106,19 +108,27 @@
     html.xhr-on { --xhr-font:18px; --xhr-line:1.85; --xhr-width:820px; }
     html.xhr-on #app { min-width:0 !important; }
     html.xhr-on #app main:not(.list) { max-width:none !important; }
-    html.xhr-on :is(#page-bbs-community, #page-bbs-link) {
+    html.xhr-on :is(#page-bbs-community, #page-bbs-link, #page-topic-link) {
       max-width:calc(var(--xhr-width) + 316px) !important;
       width:100% !important; margin-inline:auto !important;
     }
-    html.xhr-on :is(#page-bbs-community, #page-bbs-link) > .content > .list {
+    html.xhr-on :is(#page-bbs-community, #page-bbs-link, #page-topic-link) > .content > .list {
       max-width:var(--xhr-width) !important; min-width:0 !important;
       flex:1 1 0 !important; border-radius:10px;
     }
-    html.xhr-on :is(#page-bbs-community, #page-bbs-link) > .content > .right {
+    html.xhr-on :is(#page-bbs-community, #page-bbs-link, #page-topic-link) > .content > .right {
       width:300px !important;
     }
-    html.xhr-on #page-bbs-community .bbs-home__content-list { padding-inline:20px !important; }
-    html.xhr-on #page-bbs-community .hb-cpt__bbs-content { padding:var(--xhr-card-padding) 12px !important; }
+    html.xhr-on #page-topic-link .topic-link__content > .topic-link__main {
+      max-width:var(--xhr-width) !important; min-width:0 !important;
+      flex:1 1 0 !important; padding:0 !important;
+    }
+    html.xhr-on #page-topic-link .topic-link__content > .topic-link__right { width:300px !important; }
+    html.xhr-on #page-topic-link .topic-link__list { padding-inline:20px !important; }
+    html.xhr-on #page-topic-link :is(.topic-link__header, .topic-link__filter-row) { min-width:0; }
+    html.xhr-on #page-topic-link .topic-link__filter-row { gap:8px; }
+    html.xhr-on ${FEED_PAGES} .bbs-home__content-list { padding-inline:20px !important; }
+    html.xhr-on ${FEED_PAGES} .hb-cpt__bbs-content { padding:var(--xhr-card-padding) 12px !important; }
     html.xhr-on .bbs-content__title {
       font-size:calc(var(--xhr-font) + 1px) !important; line-height:1.55 !important;
       word-break:normal !important; overflow-wrap:anywhere;
@@ -156,21 +166,21 @@
       max-width:100% !important;
     }
     /* 缩略图由站点绝对定位改为可换行的方格，只改阅读容器，保留原图点击事件。 */
-    html.xhr-on.xhr-media #page-bbs-community .bbs-content__imgs-wrapper {
+    html.xhr-on.xhr-media ${FEED_PAGES} .bbs-content__imgs-wrapper {
       display:flex !important; flex-wrap:wrap !important; gap:8px;
       width:100% !important; height:auto !important; min-height:0 !important;
     }
-    html.xhr-on.xhr-media #page-bbs-community .bbs-content__imgs-wrapper > .bbs-content__image {
+    html.xhr-on.xhr-media ${FEED_PAGES} .bbs-content__imgs-wrapper > .bbs-content__image {
       position:relative !important; inset:auto !important; flex:0 0 auto;
       width:min(100%, var(--xhr-thumb-size)) !important; max-width:100% !important;
       height:auto !important; min-height:0 !important; aspect-ratio:1;
       overflow:hidden; border-radius:6px;
     }
-    html.xhr-on.xhr-media #page-bbs-community .bbs-content__image :is(img, .hb-cpt__image),
-    html.xhr-on.xhr-media #page-bbs-community img.bbs-content__image {
+    html.xhr-on.xhr-media ${FEED_PAGES} .bbs-content__image :is(img, .hb-cpt__image),
+    html.xhr-on.xhr-media ${FEED_PAGES} img.bbs-content__image {
       width:100% !important; height:100% !important; object-fit:var(--xhr-image-fit) !important;
     }
-    html.xhr-on.xhr-media #page-bbs-community .bbs-content__image-cnt {
+    html.xhr-on.xhr-media ${FEED_PAGES} .bbs-content__image-cnt {
       inset:auto 4px 4px auto !important; transform:none !important;
     }
     /* 正文图片在正常文档流中按最大宽高等比缩小，不影响表情、头像和图片查看器。 */
@@ -204,11 +214,11 @@
       padding-bottom:0 !important; margin-inline:auto;
     }
     html.xhr-on.xhr-media #page-bbs-link .post_header-image-item { object-fit:contain !important; }
-    html.xhr-on.xhr-media #page-bbs-community .bbs-content__video_wrapper {
+    html.xhr-on.xhr-media ${FEED_PAGES} .bbs-content__video_wrapper {
       width:min(100%, var(--xhr-video-width)) !important;
       height:auto !important; aspect-ratio:16 / 9; max-height:var(--xhr-video-height) !important;
     }
-    html.xhr-on.xhr-media #page-bbs-community .bbs-content__video-cover { width:100% !important; height:100% !important; object-fit:contain !important; }
+    html.xhr-on.xhr-media ${FEED_PAGES} .bbs-content__video-cover { width:100% !important; height:100% !important; object-fit:contain !important; }
     html.xhr-on.xhr-media #page-bbs-link :is(.bbs-video__video-container, .bbs-video__video-box:not(.vjs-fullscreen):not(.vjs-picture-in-picture)) {
       width:min(100%, var(--xhr-video-width)) !important; max-height:var(--xhr-video-height) !important;
       margin-inline:auto;
@@ -218,11 +228,11 @@
       height:auto !important; max-height:var(--xhr-video-height) !important; margin-inline:auto;
     }
     /* 隐藏图片仅影响帖子媒体，头像、表情和原站弹窗仍保留。 */
-    html.xhr-on.xhr-no-images #page-bbs-community .bbs-content__imgs-wrapper,
+    html.xhr-on.xhr-no-images ${FEED_PAGES} .bbs-content__imgs-wrapper,
     html.xhr-on.xhr-no-images #page-bbs-link :is(.post__header-image, .image-text__header-image),
     html.xhr-on.xhr-no-images #page-bbs-link :is(.post__content, .image-text__content) :is(.com-img, .img, .hb-cpt__image),
     html.xhr-on.xhr-no-images #page-bbs-link :is(.post__content, .image-text__content) > img,
-    html.xhr-on.xhr-no-videos #page-bbs-community .bbs-content__video_wrapper,
+    html.xhr-on.xhr-no-videos ${FEED_PAGES} .bbs-content__video_wrapper,
     html.xhr-on.xhr-no-videos #page-bbs-link :is(.bbs-video__video-container, .bbs-video__video-box),
     html.xhr-on.xhr-no-videos #page-bbs-link :is(.post__content, .image-text__content) video { display:none !important; }
     html.xhr-on #page-bbs-link :is(.post__content, .image-text__content) pre {
@@ -239,12 +249,13 @@
       font-size:calc(var(--xhr-font) - 1px) !important; line-height:var(--xhr-line) !important;
       word-break:normal !important; overflow-wrap:anywhere;
     }
-    html.xhr-on.xhr-focus :is(#page-bbs-community, #page-bbs-link) {
+    html.xhr-on.xhr-focus :is(#page-bbs-community, #page-bbs-link, #page-topic-link) {
       max-width:var(--xhr-width) !important;
     }
-    html.xhr-on.xhr-focus :is(#page-bbs-community, #page-bbs-link) > .content > .right,
+    html.xhr-on.xhr-focus :is(#page-bbs-community, #page-bbs-link, #page-topic-link) > .content > .right,
+    html.xhr-on.xhr-focus #page-topic-link .topic-link__right,
     html.xhr-on.xhr-focus #page-bbs-link .bbs-link__related-recommend,
-    html.xhr-on.xhr-topics #page-bbs-community .bbs-home__topic-list-wrapper {
+    html.xhr-on.xhr-topics ${FEED_PAGES} .bbs-home__topic-list-wrapper {
       display:none !important;
     }
     /* 主题只覆盖阅读区域，不使用滤镜反转图片，也不覆盖编辑器和弹窗。 */
@@ -258,16 +269,19 @@
     }
     html.xhr-on:not([data-xhr-theme="native"]),
     html.xhr-on:not([data-xhr-theme="native"]) body { background:var(--xhr-bg) !important; }
-    html.xhr-on:not([data-xhr-theme="native"]) :is(#page-bbs-community, #page-bbs-link) {
+    html.xhr-on:not([data-xhr-theme="native"]) :is(#page-bbs-community, #page-bbs-link, #page-topic-link) {
       color:var(--xhr-text);
       --hb-general-color-text-1:var(--xhr-text); --hb-general-color-text-2:var(--xhr-muted);
       --hb-general-color-text-3:var(--xhr-muted); --hb-general-color-text-5:var(--xhr-link);
       --hb-general-color-bg-2:var(--xhr-soft); --hb-general-color-bg-4:var(--xhr-surface);
     }
     html.xhr-on:not([data-xhr-theme="native"]) :is(
-      #page-bbs-community .list, #page-bbs-link .list, .hb-bbs-home, .bbs-home__content-list,
+      ${FEED_PAGES} .list, #page-bbs-link .list, .hb-bbs-home, .bbs-home__content-list,
       .hb-cpt-page-header, .page-header__container-bg, .bbs-community-hot-topic,
-      .cpt-right-side, .search-input .el-input__wrapper, .bbs-link__related-recommend
+      .cpt-right-side, .search-input .el-input__wrapper, .bbs-link__related-recommend,
+      #page-topic-link .topic-link__panel, #page-topic-link .topic-link__header,
+      #page-topic-link .topic-link__filter-row, #page-topic-link .topic-aside__topic-indicator,
+      #page-topic-link .topic__aside-miniprogram
     ) { background:var(--xhr-surface) !important; }
     html.xhr-on:not([data-xhr-theme="native"]) :is(
       .bbs-content__title, .bbs-content__content, .link-section-title, .link-user__username,
@@ -290,22 +304,40 @@
       .bbs-content__forward-wrapper, .link-comment__comment-children,
       .page-header__back-btn, .post__content pre, .image-text__content pre
     ) { background:var(--xhr-soft) !important; color:var(--xhr-text) !important; }
-    html.xhr-on:not([data-xhr-theme="native"]) #page-bbs-community::before,
-    html.xhr-on:not([data-xhr-theme="native"]) #page-bbs-community::after,
+    html.xhr-on:not([data-xhr-theme="native"]) ${FEED_PAGES}::before,
+    html.xhr-on:not([data-xhr-theme="native"]) ${FEED_PAGES}::after,
     html.xhr-on:not([data-xhr-theme="native"]) .hb-bbs-home__feed-splitline::after,
     html.xhr-on:not([data-xhr-theme="native"]) .hb-bbs-home__splitline::after {
       background:var(--xhr-bg) !important;
     }
-    html.xhr-on:not([data-xhr-theme="native"]) #page-bbs-community .list::before,
-    html.xhr-on:not([data-xhr-theme="native"]) #page-bbs-community .list::after {
+    html.xhr-on:not([data-xhr-theme="native"]) ${FEED_PAGES} .list::before,
+    html.xhr-on:not([data-xhr-theme="native"]) ${FEED_PAGES} .list::after {
       background:var(--xhr-surface) !important;
     }
+    html.xhr-on:not([data-xhr-theme="native"]) #page-topic-link .topic-link__splitline::after {
+      background:var(--xhr-bg) !important;
+    }
+    html.xhr-on:not([data-xhr-theme="native"]) #page-topic-link .topic-link__main::after {
+      background:var(--xhr-surface) !important;
+    }
+    html.xhr-on:not([data-xhr-theme="native"]) #page-topic-link .hb-cpt__slide-tab {
+      background:var(--xhr-surface) !important;
+    }
+    html.xhr-on:not([data-xhr-theme="native"]) #page-topic-link .slide-tab__tab-item:not(.active),
+    html.xhr-on:not([data-xhr-theme="native"]) #page-topic-link .topic-link__sorter { color:var(--xhr-muted) !important; }
+    html.xhr-on:not([data-xhr-theme="native"]) #page-topic-link .hb-cpt__slide-tab.underline .slide-tab__tab-item.active,
+    html.xhr-on:not([data-xhr-theme="native"]) #page-topic-link :is(.aside-miniprogram__header, .aside-miniprogram__item--name) { color:var(--xhr-text) !important; }
+    html.xhr-on:not([data-xhr-theme="native"]) #page-topic-link .hb-cpt__slide-tab.underline .slide-tab-tab__bar { background:var(--xhr-text) !important; }
+    html.xhr-on:not([data-xhr-theme="native"]) #page-topic-link .aside-miniprogram__item { background:var(--xhr-soft) !important; }
     @media (max-width:1080px) {
-      html.xhr-on :is(#page-bbs-community, #page-bbs-link) { max-width:var(--xhr-width) !important; }
-      html.xhr-on :is(#page-bbs-community, #page-bbs-link) > .content > .right { display:none !important; }
+      html.xhr-on :is(#page-bbs-community, #page-bbs-link, #page-topic-link) { max-width:var(--xhr-width) !important; }
+      html.xhr-on :is(#page-bbs-community, #page-bbs-link, #page-topic-link) > .content > .right { display:none !important; }
+      html.xhr-on #page-topic-link .topic-link__right { display:none !important; }
     }
     @media (max-width:600px) {
-      html.xhr-on #page-bbs-community .bbs-home__content-list { padding-inline:4px !important; }
+      html.xhr-on ${FEED_PAGES} .bbs-home__content-list { padding-inline:4px !important; }
+      html.xhr-on #page-topic-link .topic-link__list { padding-inline:4px !important; }
+      html.xhr-on #page-topic-link .topic-link__filter-row { padding-inline:12px !important; }
       html.xhr-on #page-bbs-link .hb-bbs-link__container { padding-inline:4px !important; }
       html.xhr-on #page-bbs-link .comment-item__content-container { padding-left:20px !important; }
     }
@@ -317,7 +349,7 @@
   // Shadow DOM 隔离设置面板，避免被站点 CSS 影响。
   const host = document.createElement('div');
   host.id = ID;
-  host.dataset.version = '1.2.0';
+  host.dataset.version = '1.3.0';
   const panel = host.attachShadow({ mode: 'open' });
   const sliders = keys => keys.map(key => {
     const [label, min, max, step, unit] = NUMBERS[key];
@@ -369,10 +401,10 @@
           ${sliders(['thumbSize', 'thumbCount', 'imageWidth', 'imageHeight', 'galleryHeight', 'videoWidth', 'videoHeight'])}
           <p class="hint">正文图片始终保持比例；点击图片可使用网站原图查看。缩略图“填满方格”可能裁切边缘。</p>
         </details>
-        <details><summary>排版与信息密度</summary>${sliders(['font', 'line', 'width', 'cardPadding', 'summaryLines'])}<p class="hint">开启“展开首页已有摘要”时，摘要行数限制不生效。</p></details>
+        <details><summary>排版与信息密度</summary>${sliders(['font', 'line', 'width', 'cardPadding', 'summaryLines'])}<p class="hint">开启“展开列表已有摘要”时，摘要行数限制不生效。</p></details>
         <details open><summary>阅读选项</summary>
         <label>专注模式 · 隐藏右侧栏<input type="checkbox" data-key="focus"></label>
-        <label>展开首页已有摘要<input type="checkbox" data-key="fullSummary"></label>
+        <label>展开列表已有摘要<input type="checkbox" data-key="fullSummary"></label>
         <label>隐藏首页社区快捷入口<input type="checkbox" data-key="hideTopics"></label>
         <label>同步优化评论字号<input type="checkbox" data-key="comments"></label>
         </details>
@@ -384,9 +416,14 @@
   `;
   (document.body || root).append(host);
 
-  function isReadingPage() {
-    return /^\/(?:app\/)?bbs\/(?:home\/?$|link\/[^/]+\/?$)/.test(location.pathname);
+  function readingContainerID() {
+    const path = location.pathname;
+    if (/^\/(?:app\/)?bbs\/home\/?$/.test(path)) return 'page-bbs-community';
+    if (/^\/(?:app\/)?bbs\/link\/[^/]+\/?$/.test(path)) return 'page-bbs-link';
+    if (/^\/(?:app\/)?topic\/link\/[^/]+\/?$/.test(path)) return 'page-topic-link';
+    return null;
   }
+  function isReadingPage() { return readingContainerID() !== null; }
   const cssName = key => `--xhr-${key.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`)}`;
   const ownedClasses = ['xhr-on', 'xhr-focus', 'xhr-full', 'xhr-topics', 'xhr-comments', 'xhr-media', 'xhr-no-images', 'xhr-no-videos'];
   const ownedProperties = [...Object.keys(NUMBERS).map(cssName), '--xhr-image-fit'];
@@ -409,7 +446,7 @@
     if (disposed || suspended) return;
     mount();
     const route = isReadingPage();
-    activeContainer = route ? document.getElementById(/\/home\/?$/.test(location.pathname) ? 'page-bbs-community' : 'page-bbs-link') : null;
+    activeContainer = route ? document.getElementById(readingContainerID()) : null;
     // 类名失配或页面尚未挂载时，不向未知页面套用布局。
     const active = options.enabled && Boolean(activeContainer);
     root.classList.toggle('xhr-on', active);
@@ -424,7 +461,7 @@
       for (const [key, [, , , , unit]] of Object.entries(NUMBERS)) root.style.setProperty(cssName(key), `${options[key]}${unit === 'px' ? 'px' : ''}`);
       root.style.setProperty('--xhr-image-fit', options.imageFit);
       // :nth-child 的计数不能使用 CSS 变量；只重建这一条已校验的规则。
-      const limitRule = `html.xhr-on.xhr-media #page-bbs-community .bbs-content__imgs-wrapper > .bbs-content__image:nth-child(n+${options.thumbCount + 1} of .bbs-content__image){display:none !important;}`;
+      const limitRule = `html.xhr-on.xhr-media ${FEED_PAGES} .bbs-content__imgs-wrapper > .bbs-content__image:nth-child(n+${options.thumbCount + 1} of .bbs-content__image){display:none !important;}`;
       if (mediaLimitStyle.textContent !== limitRule) mediaLimitStyle.textContent = limitRule;
     } else {
       root.removeAttribute('data-xhr-theme');
@@ -558,7 +595,7 @@
     }
     // 常规追加帖子由 CSS 自动生效。仅关注页面容器的挂载，不扫描每条帖子的内容。
     if (!activeContainer && isReadingPage() && records.some(record => Array.from(record.addedNodes).some(node =>
-      node.nodeType === 1 && (node.matches('#page-bbs-community, #page-bbs-link') || node.querySelector('#page-bbs-community, #page-bbs-link'))))) scheduleApply();
+      node.nodeType === 1 && (node.matches(PAGE_SELECTOR) || node.querySelector(PAGE_SELECTOR))))) scheduleApply();
   });
   function startObserver() { observer.observe(document, { childList: true, subtree: true }); }
   function startPolling() {
