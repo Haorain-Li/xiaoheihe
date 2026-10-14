@@ -1,0 +1,20 @@
+/* 自建最小站点夹具：模拟社区与详情页的原始布局，不包含站点源码。 */
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #f7f8f9; }
+#app { min-width: 800px; }
+#app main { width: 100%; max-width: 1300px; margin: auto; padding: 0 12px; }
+#page-bbs-community, .layout-normal { max-width: 1032px; margin: auto; padding: 16px 0; }
+.content { display: flex; gap: 16px; }
+.content > .list { flex: 1; width: 0; background: white; }
+#page-bbs-community .list { max-width: 660px; }
+.content > .right { width: 356px; flex-shrink: 0; }
+.hb-cpt__bbs-content { padding: 14px 12px; }
+.bbs-content__title { font-size: 17px; line-height: 25px; }
+.bbs-content__content { font-size: 15px; line-height: 23px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+.hb-cpt-page-header { background: white; }
+.page-header__container { padding: 16px; }
+.post__container { padding: 16px 12px; }
+.post__content, .image-text__content { font-size: 16px; line-height: 25px; }
+.link-section-title { font-size: 20px; line-height: 30px; }
+.comment-item__content, .children-item__comment-content { font-size: 15px; }
+@media(max-width: 1080px) { .content > .right { display: none; } }
